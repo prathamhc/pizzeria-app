@@ -41,10 +41,11 @@ const CartSchema = new mongoose.Schema({
   timestamps: true
 });
 
-CartItemSchema.pre('save', function (next) {
-  const toppingTotal = this.selectedToppings.reduce((sum, t) => sum + t.price, 0);
-  this.itemTotal = (this.basePrice + toppingTotal) * this.qty;
-  next();
+CartItemSchema.pre('save', function () {
+  const toppingTotal = (this.selectedToppings || [])
+    .reduce((sum, t) => sum + Number(t.price || 0), 0);
+
+  this.itemTotal = (Number(this.basePrice) + toppingTotal) * Number(this.qty);
 });
 
 module.exports = mongoose.model('Cart', CartSchema);
