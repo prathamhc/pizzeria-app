@@ -1,21 +1,82 @@
 <div class="container mt-4">
-  <h2>Build Your Pizza</h2>
+  <h2 class="mb-4">Build Your Custom Pizza</h2>
 
-  <div class="row">
-    <div class="col-md-4" *ngFor="let t of toppings">
-      <div class="form-check">
-        <!-- <input class="form-check-input" type="checkbox"
-               (change)="toggle(t, $event.target.checked)">
-        <label class="form-check-label">
-          {{ t.name }} (Rs{{ t.price }})
-        </label> -->
+  <div *ngIf="loading" class="text-center my-5">
+    <div class="spinner-border text-primary"></div>
+    <p class="mt-2">Loading toppings...</p>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <div *ngIf="!loading && !error">
+    <div class="row">
+      <div class="col-lg-8">
+        <div class="card mb-4">
+          <div class="card-body">
+            <h5 class="card-title">Select Toppings</h5>
+            <div class="row">
+              <div class="col-md-6 mb-3" *ngFor="let topping of toppings">
+                <div class="card h-100">
+                  <div class="card-body d-flex align-items-center">
+                    <img [src]="topping.image" [alt]="topping.tname" class="rounded me-3"
+                      style="width: 60px; height: 60px; object-fit: cover;">
+
+                    <div class="flex-grow-1">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" [id]="'topping-' + topping.id"
+                          [checked]="isSelected(topping)"
+                          (change)="toggleTopping(topping, $any($event.target).checked)">
+                        <label class="form-check-label" [for]="'topping-' + topping.id">
+                          <strong>{{ topping.tname }}</strong>
+                          <br>
+                          <span class="text-success">+₹{{ topping.price }}</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card sticky-top" style="top: 20px;">
+          <div class="card-body">
+            <h5 class="card-title">Your Pizza</h5>
+            <hr>
+
+            <div class="mb-3">
+              <strong>Base Price:</strong>
+              <span class="float-end">₹{{ basePrice }}</span>
+            </div>
+
+            <div class="mb-3">
+              <strong>Selected Toppings:</strong>
+              <ul class="list-unstyled mt-2">
+                <li *ngFor="let topping of selectedToppings" class="small">
+                  {{ topping.tname }}
+                  <span class="float-end text-success">+₹{{ topping.price }}</span>
+                </li>
+                <li *ngIf="selectedToppings.length === 0" class="text-muted small">
+                  No toppings selected
+                </li>
+              </ul>
+            </div>
+
+            <hr>
+
+            <div class="mb-3">
+              <h5>Total: <span class="text-success float-end">₹{{ getTotalPrice() }}</span></h5>
+            </div>
+
+            <button class="btn btn-success w-100" [disabled]="selectedToppings.length === 0" (click)="addCustomPizza()">
+              <i class="bi bi-cart-plus"></i> Add to Cart
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-
-  <h4 class="mt-4">Total: ₹{{ total }}</h4>
-
-  <button class="btn btn-success mt-2" [disabled]="total === 0">
-    Add Custom Pizza
-  </button>
 </div>

@@ -3,34 +3,42 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
-import { Pizza } from '../models/pizza.model';
+import { Order } from '../models/order.model';
 import { ApiResponse } from '../models/api-response.model';
+
 
 @Injectable({
   providedIn: 'root'
 })
-export class PizzaService {
-  private apiUrl = `${environment.apiUrl}/pizzas`;
+export class OrderService {
+  private apiUrl = `${environment.apiUrl}/orders`;
 
   constructor(private http: HttpClient) { }
 
-  getPizzas(): Observable<Pizza[]> {
-    return this.http.get<ApiResponse<Pizza[]>>(this.apiUrl).pipe(
-      map(response => response.data || []),
-      catchError(this.handleError)
-    );
-  }
-
-  getPizzaById(id: string): Observable<Pizza> {
-    return this.http.get<ApiResponse<Pizza>>(`${this.apiUrl}/${id}`).pipe(
+  createOrder(order: Partial<Order>): Observable<Order> {
+    return this.http.post<ApiResponse<Order>>(this.apiUrl, order).pipe(
       map(response => response.data),
       catchError(this.handleError)
     );
   }
 
-  getPizzasByType(type: 'veg' | 'nonveg'): Observable<Pizza[]> {
-    return this.http.get<ApiResponse<Pizza[]>>(`${this.apiUrl}?type=${type}`).pipe(
+  getOrders(): Observable<Order[]> {
+    return this.http.get<ApiResponse<Order[]>>(this.apiUrl).pipe(
       map(response => response.data || []),
+      catchError(this.handleError)
+    );
+  }
+
+  getOrderById(id: string): Observable<Order> {
+    return this.http.get<ApiResponse<Order>>(`${this.apiUrl}/${id}`).pipe(
+      map(response => response.data),
+      catchError(this.handleError)
+    );
+  }
+
+  updateOrderStatus(id: string, status: Order['status']): Observable<Order> {
+    return this.http.patch<ApiResponse<Order>>(`${this.apiUrl}/${id}/status`, { status }).pipe(
+      map(response => response.data),
       catchError(this.handleError)
     );
   }
@@ -44,7 +52,7 @@ export class PizzaService {
       errorMessage = error.error?.error || `Server Error: ${error.status} - ${error.message}`;
     }
 
-    console.error('Pizza Service Error:', errorMessage);
+    console.error('Order Service Error:', errorMessage);
     return throwError(() => new Error(errorMessage));
   }
 }

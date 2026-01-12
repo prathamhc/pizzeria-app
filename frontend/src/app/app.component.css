@@ -1,4 +1,34 @@
-.img-size{
-    height: 80px;
-    object-fit: cover;
+.img-size {
+    height: 60px;
+    width: auto;
+    object-fit: contain;
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-link {
+    transition: color 0.2s;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    color: #ffc107 !important;
+}
+
+.nav-link.active {
+    color: #ffc107 !important;
+    font-weight: 600;
+}
+
+footer {
+    margin-top: auto;
+    border-top: 1px solid #dee2e6;
 }

@@ -1,50 +1,91 @@
 <div class="container mt-4">
-  <h2 class="mb-4">Our Menu</h2>
+  <!-- Loading State -->
+  <div *ngIf="loading" class="text-center my-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading menu...</p>
+  </div>
 
-  <div class="row">
-    <div class="col-md-6 mb-3" *ngFor="let pizza of pizzas">
-      <div class="pizza-card border p-3 d-flex">
+  <!-- Error State -->
+  <div *ngIf="error" class="alert alert-danger" role="alert">
+    {{ error }}
+    <button class="btn btn-sm btn-outline-danger ms-3" (click)="loadPizzas()">
+      Retry
+    </button>
+  </div>
 
-        <div class="flex-grow-1 pe-3">
-          <div class="d-flex align-items-center mb-2">
-            <h5 class="fw-bold me-2">{{ pizza.name }}</h5>
-            <div class="box" [ngClass]="pizza.type === 'veg' ? 'veg' : 'non-veg'">
+  <!-- Menu Content -->
+  <div *ngIf="!loading && !error">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>Our Menu</h2>
+
+      <!-- Filter Buttons -->
+      <div class="btn-group" role="group">
+        <button type="button" class="btn" [class.btn-primary]="selectedFilter === 'all'"
+          [class.btn-outline-primary]="selectedFilter !== 'all'" (click)="filterPizzas('all')">
+          All
+        </button>
+        <button type="button" class="btn" [class.btn-success]="selectedFilter === 'veg'"
+          [class.btn-outline-success]="selectedFilter !== 'veg'" (click)="filterPizzas('veg')">
+          Veg
+        </button>
+        <button type="button" class="btn" [class.btn-danger]="selectedFilter === 'nonveg'"
+          [class.btn-outline-danger]="selectedFilter !== 'nonveg'" (click)="filterPizzas('nonveg')">
+          Non-Veg
+        </button>
+      </div>
+    </div>
+
+    <!-- Pizza Grid -->
+    <div class="row">
+      <div class="col-md-6 mb-3" *ngFor="let pizza of filteredPizzas">
+        <div class="pizza-card border rounded p-3 d-flex shadow-sm">
+          <div class="flex-grow-1 pe-3">
+            <div class="d-flex align-items-center mb-2">
+              <h5 class="fw-bold me-2 mb-0">{{ pizza.name }}</h5>
+              <div class="veg-indicator" [class.veg]="pizza.type === 'veg'" [class.non-veg]="pizza.type === 'nonveg'">
+              </div>
             </div>
+
+            <p class="mb-2 text-muted small">{{ pizza.description }}</p>
+
+            <p class="mb-1 small">
+              <strong>Ingredients:</strong>
+              <span *ngFor="let ing of pizza.ingredients; let last = last">
+                {{ ing.iname }}<span *ngIf="!last">, </span>
+              </span>
+            </p>
+
+            <p class="mb-2 small">
+              <strong>Toppings:</strong>
+              <span *ngFor="let top of pizza.topping; let last = last">
+                {{ top.tname }}<span *ngIf="!last">, </span>
+              </span>
+            </p>
+
+            <p class="fs-5 fw-bold mb-0 text-success">₹{{ pizza.price }}</p>
           </div>
 
-          <p class="mb-1 text-muted">{{ pizza.description }}</p>
+          <div class="text-center d-flex flex-column align-items-center">
+            <img [src]="pizza.image" [alt]="pizza.name" class="img-fluid rounded mb-2"
+              style="max-width: 120px; height: 120px; object-fit: cover;" />
 
-          <p class="mb-1">
-            <strong>Ingredients:</strong>
-            <span *ngFor="let ing of pizza.ingredients">
-              {{ ing.iname }},
-            </span>
-          </p>
+            <button *ngIf="!isInCart(pizza)" class="btn btn-primary btn-sm w-100" (click)="addToCart(pizza)">
+              <i class="bi bi-cart-plus"></i> Add
+            </button>
 
-          <p class="mb-2">
-            <strong>Toppings:</strong>
-            <span *ngFor="let top of pizza.topping">
-              {{ top.tname }},
-            </span>
-          </p>
-
-          <p class="fs-5 fw-bold mb-0">₹{{ pizza.price }}</p>
+            <button *ngIf="isInCart(pizza)" class="btn btn-danger btn-sm w-100" (click)="removeFromCart(pizza)">
+              <i class="bi bi-cart-x"></i> Remove
+            </button>
+          </div>
         </div>
-
-        <div class="text-center">
-          <img [src]="pizza.image" class="img-fluid mb-2" style="max-width: 120px;" />
-
-          <button *ngIf="!isInCart(pizza)" class="btn btn-primary w-100 mt-5" (click)="addToCart(pizza)">
-            Add
-          </button>
-
-          <button *ngIf="isInCart(pizza)" class="btn btn-danger w-100 mt-5" (click)="removeFromCart(pizza)">
-            Remove
-          </button>
-
-        </div>
-
       </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredPizzas.length === 0" class="text-center my-5">
+      <p class="text-muted">No pizzas found for this filter.</p>
     </div>
   </div>
 </div>
