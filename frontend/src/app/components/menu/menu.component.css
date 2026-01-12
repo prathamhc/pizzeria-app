@@ -1,0 +1,27 @@
+.pizza-card{
+    padding: 10px;
+}
+
+
+.box{
+  width:20px;
+  height:20px;
+  border:2px solid;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.box::after{
+  content:"";
+  width:12px;
+  height:12px;
+  border-radius:50%;
+}
+.veg{border-color:green;}
+.veg::after{background:green;}
+
+.non-veg{border-color:red;}
+.non-veg::after{background:red;}
+
+
+
