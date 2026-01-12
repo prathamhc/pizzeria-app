@@ -1,40 +1,44 @@
 const router = require('express').Router();
 const Cart = require('../models/Cart');
 
-// Get cart (create if doesn't exist)
 router.get('/', async (req, res, next) => {
   try {
+    console.log('GET /cart - Fetching cart');
     let cart = await Cart.findOne();
 
     if (!cart) {
+      console.log('No cart found, creating new cart');
       cart = await Cart.create({ items: [], total: 0 });
     }
 
+    console.log('Cart fetched:', cart);
     res.json({
       success: true,
       data: cart
     });
   } catch (err) {
+    console.error('GET /cart error:', err);
     next(err);
   }
 });
 
-// Calculate cart total
 const calculateTotal = (items) => {
   return items.reduce((total, item) => {
     const toppingTotal = item.selectedToppings
       ? item.selectedToppings.reduce((sum, t) => sum + (t.price || 0), 0)
       : 0;
-    return total + (item.basePrice + toppingTotal) * item.qty;
+    const itemTotal = (item.basePrice + toppingTotal) * item.qty;
+    return total + itemTotal;
   }, 0);
 };
 
-// Add item to cart
 router.post('/add', async (req, res, next) => {
   try {
+    console.log('POST /cart/add - Request body:', req.body);
     const { pizzaId, name, basePrice, selectedToppings = [] } = req.body;
 
     if (!pizzaId || !name || basePrice === undefined) {
+      console.error('Missing required fields');
       return res.status(400).json({
         success: false,
         error: 'Missing required fields: pizzaId, name, basePrice'
@@ -43,14 +47,19 @@ router.post('/add', async (req, res, next) => {
 
     let cart = await Cart.findOne();
     if (!cart) {
+      console.log('No cart exists, creating new one');
       cart = new Cart({ items: [], total: 0 });
     }
 
-    const existingItem = cart.items.find(item => item.pizzaId === pizzaId);
+    console.log('Current cart before adding:', cart);
 
-    if (existingItem) {
-      existingItem.qty += 1;
+    const existingItemIndex = cart.items.findIndex(item => item.pizzaId === pizzaId);
+
+    if (existingItemIndex !== -1) {
+      console.log('Item already exists, incrementing quantity');
+      cart.items[existingItemIndex].qty += 1;
     } else {
+      console.log('Adding new item to cart');
       cart.items.push({
         pizzaId,
         name,
@@ -61,20 +70,24 @@ router.post('/add', async (req, res, next) => {
     }
 
     cart.total = calculateTotal(cart.items);
+    console.log('Cart after adding, before save:', cart);
+
     await cart.save();
+    console.log('Cart saved successfully:', cart);
 
     res.json({
       success: true,
       data: cart
     });
   } catch (err) {
+    console.error('POST /cart/add error:', err);
     next(err);
   }
 });
 
-// Update item quantity
 router.put('/update', async (req, res, next) => {
   try {
+    console.log('PUT /cart/update - Request body:', req.body);
     const { pizzaId, qty } = req.body;
 
     if (!pizzaId || qty === undefined) {
@@ -92,9 +105,9 @@ router.put('/update', async (req, res, next) => {
       });
     }
 
-    const item = cart.items.find(item => item.pizzaId === pizzaId);
+    const itemIndex = cart.items.findIndex(item => item.pizzaId === pizzaId);
 
-    if (!item) {
+    if (itemIndex === -1) {
       return res.status(404).json({
         success: false,
         error: 'Item not found in cart'
@@ -102,26 +115,31 @@ router.put('/update', async (req, res, next) => {
     }
 
     if (qty <= 0) {
-      cart.items = cart.items.filter(item => item.pizzaId !== pizzaId);
+      console.log('Quantity <= 0, removing item');
+      cart.items.splice(itemIndex, 1);
     } else {
-      item.qty = qty;
+      console.log('Updating quantity to:', qty);
+      cart.items[itemIndex].qty = qty;
     }
 
     cart.total = calculateTotal(cart.items);
     await cart.save();
+
+    console.log('Cart updated:', cart);
 
     res.json({
       success: true,
       data: cart
     });
   } catch (err) {
+    console.error('PUT /cart/update error:', err);
     next(err);
   }
 });
 
-// Remove item from cart
 router.delete('/remove/:pizzaId', async (req, res, next) => {
   try {
+    console.log('DELETE /cart/remove - pizzaId:', req.params.pizzaId);
     const { pizzaId } = req.params;
 
     let cart = await Cart.findOne();
@@ -132,22 +150,32 @@ router.delete('/remove/:pizzaId', async (req, res, next) => {
       });
     }
 
-    cart.items = cart.items.filter(item => item.pizzaId !== pizzaId);
+    const itemIndex = cart.items.findIndex(item => item.pizzaId === pizzaId);
+
+    if (itemIndex !== -1) {
+      console.log('Removing item from cart');
+      cart.items.splice(itemIndex, 1);
+    }
+
     cart.total = calculateTotal(cart.items);
     await cart.save();
+
+    console.log('Cart after removal:', cart);
 
     res.json({
       success: true,
       data: cart
     });
   } catch (err) {
+    console.error('DELETE /cart/remove error:', err);
     next(err);
   }
 });
 
-// Clear cart
 router.delete('/clear', async (req, res, next) => {
   try {
+    console.log('DELETE /cart/clear - Clearing cart');
+
     let cart = await Cart.findOne();
 
     if (!cart) {
@@ -158,12 +186,14 @@ router.delete('/clear', async (req, res, next) => {
     }
 
     await cart.save();
+    console.log('Cart cleared:', cart);
 
     res.json({
       success: true,
       data: cart
     });
   } catch (err) {
+    console.error('DELETE /cart/clear error:', err);
     next(err);
   }
 });
