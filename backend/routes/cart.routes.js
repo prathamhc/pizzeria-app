@@ -1,73 +1,171 @@
 const router = require('express').Router();
 const Cart = require('../models/Cart');
 
-router.get('/', async (req, res) => {
-  const cart = await Cart.findOne();
-  res.json(cart || { items: [], total: 0 });
-});
+// Get cart (create if doesn't exist)
+router.get('/', async (req, res, next) => {
+  try {
+    let cart = await Cart.findOne();
 
-router.post('/add', async (req, res) => {
-  let cart = await Cart.findOne();
-  if (!cart) cart = await Cart.create({ items: [], total: 0 });
+    if (!cart) {
+      cart = await Cart.create({ items: [], total: 0 });
+    }
 
-  const item = req.body;
-
-  const basePrice = Number(item.basePrice);
-  const pizzaId = item.pizzaId;
-
-  if (isNaN(basePrice)) {
-    return res.status(400).json({ message: 'Invalid price' });
-  }
-
-  const existing = cart.items.find(i => i.pizzaId === pizzaId);
-
-  if (existing) {
-    existing.qty += 1;
-  } else {
-    cart.items.push({
-      pizzaId: pizzaId,
-      name: item.name,
-      basePrice: basePrice,
-      qty: 1
+    res.json({
+      success: true,
+      data: cart
     });
+  } catch (err) {
+    next(err);
   }
-
-  cart.total = cart.items.reduce(
-    (sum, i) => sum + Number(i.basePrice) * Number(i.qty),
-    0
-  );
-
-  await cart.save();
-  res.json(cart);
 });
 
+// Calculate cart total
+const calculateTotal = (items) => {
+  return items.reduce((total, item) => {
+    const toppingTotal = item.selectedToppings
+      ? item.selectedToppings.reduce((sum, t) => sum + (t.price || 0), 0)
+      : 0;
+    return total + (item.basePrice + toppingTotal) * item.qty;
+  }, 0);
+};
 
-router.put('/update', async (req, res) => {
-  const { pizzaId, qty } = req.body;
+// Add item to cart
+router.post('/add', async (req, res, next) => {
+  try {
+    const { pizzaId, name, basePrice, selectedToppings = [] } = req.body;
 
-  const cart = await Cart.findOne();
-  if (!cart) return res.status(400).json({ message: 'Cart not found' });
+    if (!pizzaId || !name || basePrice === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: pizzaId, name, basePrice'
+      });
+    }
 
-  const item = cart.items.find(i => i.pizzaId === pizzaId);
-  if (item) {
-    item.qty = Number(qty);
+    let cart = await Cart.findOne();
+    if (!cart) {
+      cart = new Cart({ items: [], total: 0 });
+    }
+
+    const existingItem = cart.items.find(item => item.pizzaId === pizzaId);
+
+    if (existingItem) {
+      existingItem.qty += 1;
+    } else {
+      cart.items.push({
+        pizzaId,
+        name,
+        basePrice: Number(basePrice),
+        qty: 1,
+        selectedToppings
+      });
+    }
+
+    cart.total = calculateTotal(cart.items);
+    await cart.save();
+
+    res.json({
+      success: true,
+      data: cart
+    });
+  } catch (err) {
+    next(err);
   }
-
-  cart.items = cart.items.filter(i => i.qty > 0);
-
-  cart.total = cart.items.reduce(
-    (sum, i) => sum + Number(i.basePrice) * Number(i.qty),
-    0
-  );
-
-  await cart.save();
-  res.json(cart);
 });
 
+// Update item quantity
+router.put('/update', async (req, res, next) => {
+  try {
+    const { pizzaId, qty } = req.body;
 
-router.delete('/clear', async (req, res) => {
-  await Cart.deleteMany();
-  res.json({ message: 'Cart cleared' });
+    if (!pizzaId || qty === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: pizzaId, qty'
+      });
+    }
+
+    let cart = await Cart.findOne();
+    if (!cart) {
+      return res.status(404).json({
+        success: false,
+        error: 'Cart not found'
+      });
+    }
+
+    const item = cart.items.find(item => item.pizzaId === pizzaId);
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        error: 'Item not found in cart'
+      });
+    }
+
+    if (qty <= 0) {
+      cart.items = cart.items.filter(item => item.pizzaId !== pizzaId);
+    } else {
+      item.qty = qty;
+    }
+
+    cart.total = calculateTotal(cart.items);
+    await cart.save();
+
+    res.json({
+      success: true,
+      data: cart
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Remove item from cart
+router.delete('/remove/:pizzaId', async (req, res, next) => {
+  try {
+    const { pizzaId } = req.params;
+
+    let cart = await Cart.findOne();
+    if (!cart) {
+      return res.status(404).json({
+        success: false,
+        error: 'Cart not found'
+      });
+    }
+
+    cart.items = cart.items.filter(item => item.pizzaId !== pizzaId);
+    cart.total = calculateTotal(cart.items);
+    await cart.save();
+
+    res.json({
+      success: true,
+      data: cart
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Clear cart
+router.delete('/clear', async (req, res, next) => {
+  try {
+    let cart = await Cart.findOne();
+
+    if (!cart) {
+      cart = new Cart({ items: [], total: 0 });
+    } else {
+      cart.items = [];
+      cart.total = 0;
+    }
+
+    await cart.save();
+
+    res.json({
+      success: true,
+      data: cart
+    });
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;
