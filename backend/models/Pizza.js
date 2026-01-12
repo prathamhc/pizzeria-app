@@ -1,28 +1,45 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const PizzaSchema = new mongoose.Schema({
-    pizzaId: String,
-    name: String,
+    pizzaId: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    name: {
+        type: String,
+        required: true,
+        trim: true
+    },
     type: {
         type: String,
-        enum: ['veg', 'nonveg']
+        enum: ['veg', 'nonveg'],
+        required: true
     },
-    basePrice: Number,
-    image: String,
-    description: String,
-    ingredients: [
-        {
-            ingredientID: Number,
-            name: String
-        }
-    ],
-    toppings: [
-        {
-            ingredientID: Number,
-            name: String,
-            price: Number
-        }
-    ],
-})
+    price: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    image: {
+        type: String,
+        required: true
+    },
+    description: {
+        type: String,
+        required: true
+    },
+    ingredients: [{
+        id: Number,
+        iname: String
+    }],
+    topping: [{
+        id: Number,
+        tname: String,
+        price: Number
+    }]
+}, {
+    timestamps: true
+});
 
-module.exports = mongoose.model("Pizza", PizzaSchema);
+module.exports = mongoose.model('Pizza', PizzaSchema);
