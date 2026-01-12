@@ -1,8 +1,40 @@
-const router = require("express").Router();
-const Pizza = require("../models/Pizza")
+const router = require('express').Router();
+const Pizza = require('../models/Pizza');
 
-router.get("/", async(req, res)=>{
-res.json(await Pizza.find());
-})
+router.get('/', async (req, res, next) => {
+    try {
+        const { type } = req.query;
+        const filter = type ? { type } : {};
+
+        const pizzas = await Pizza.find(filter);
+        res.json({
+            success: true,
+            count: pizzas.length,
+            data: pizzas
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/:id', async (req, res, next) => {
+    try {
+        const pizza = await Pizza.findOne({ pizzaId: req.params.id });
+
+        if (!pizza) {
+            return res.status(404).json({
+                success: false,
+                error: 'Pizza not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: pizza
+        });
+    } catch (err) {
+        next(err);
+    }
+});
 
 module.exports = router;
