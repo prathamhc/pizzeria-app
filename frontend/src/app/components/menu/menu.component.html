@@ -16,26 +16,12 @@
   <div *ngIf="!loading && !error">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2>Our Menu</h2>
-
-      <div class="btn-group" role="group">
-        <button type="button" class="btn" [class.btn-primary]="selectedFilter === 'all'"
-          [class.btn-outline-primary]="selectedFilter !== 'all'" (click)="filterPizzas('all')">
-          All
-        </button>
-        <button type="button" class="btn" [class.btn-success]="selectedFilter === 'veg'"
-          [class.btn-outline-success]="selectedFilter !== 'veg'" (click)="filterPizzas('veg')">
-          Veg
-        </button>
-        <button type="button" class="btn" [class.btn-danger]="selectedFilter === 'nonveg'"
-          [class.btn-outline-danger]="selectedFilter !== 'nonveg'" (click)="filterPizzas('nonveg')">
-          Non-Veg
-        </button>
-      </div>
     </div>
+
 
     <div class="row">
       <div class="col-md-6 mb-3" *ngFor="let pizza of filteredPizzas">
-        <div class="pizza-card border rounded p-3 d-flex shadow-sm">
+        <div class="pizza-card border p-3 d-flex ">
           <div class="flex-grow-1 pe-3">
             <div class="d-flex align-items-center mb-2">
               <h5 class="fw-bold me-2 mb-0">{{ pizza.name }}</h5>
