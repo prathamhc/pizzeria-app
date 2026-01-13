@@ -3,10 +3,7 @@ const Pizza = require('../models/Pizza');
 
 router.get('/', async (req, res, next) => {
     try {
-        const { type } = req.query;
-        const filter = type ? { type } : {};
-
-        const pizzas = await Pizza.find(filter);
+        const pizzas = await Pizza.find();
         res.json({
             success: true,
             count: pizzas.length,

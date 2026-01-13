@@ -28,13 +28,6 @@ export class PizzaService {
     );
   }
 
-  getPizzasByType(type: 'veg' | 'nonveg'): Observable<Pizza[]> {
-    return this.http.get<ApiResponse<Pizza[]>>(`${this.apiUrl}?type=${type}`).pipe(
-      map(response => response.data || []),
-      catchError(this.handleError)
-    );
-  }
-
   private handleError(error: HttpErrorResponse) {
     let errorMessage = 'An error occurred';
 

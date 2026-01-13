@@ -15,7 +15,6 @@ export class MenuComponent implements OnInit, OnDestroy {
   filteredPizzas: Pizza[] = [];
   loading: boolean = true;
   error: string = '';
-  selectedFilter: 'all' | 'veg' | 'nonveg' = 'all';
 
   currentCart: Cart = { items: [], total: 0 };
   private destroy$ = new Subject<void>();
@@ -62,15 +61,6 @@ export class MenuComponent implements OnInit, OnDestroy {
     });
   }
 
-  filterPizzas(type: 'all' | 'veg' | 'nonveg'): void {
-    this.selectedFilter = type;
-
-    if (type === 'all') {
-      this.filteredPizzas = this.pizzas;
-    } else {
-      this.filteredPizzas = this.pizzas.filter(pizza => pizza.type === type);
-    }
-  }
 
   isInCart(pizza: Pizza): boolean {
     const pizzaId = pizza.pizzaId || pizza._id || '';
