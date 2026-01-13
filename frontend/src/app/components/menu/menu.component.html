@@ -1,5 +1,4 @@
 <div class="container mt-4">
-  <!-- Loading State -->
   <div *ngIf="loading" class="text-center my-5">
     <div class="spinner-border text-primary" role="status">
       <span class="visually-hidden">Loading...</span>
@@ -7,7 +6,6 @@
     <p class="mt-2">Loading menu...</p>
   </div>
 
-  <!-- Error State -->
   <div *ngIf="error" class="alert alert-danger" role="alert">
     {{ error }}
     <button class="btn btn-sm btn-outline-danger ms-3" (click)="loadPizzas()">
@@ -15,12 +13,10 @@
     </button>
   </div>
 
-  <!-- Menu Content -->
   <div *ngIf="!loading && !error">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2>Our Menu</h2>
 
-      <!-- Filter Buttons -->
       <div class="btn-group" role="group">
         <button type="button" class="btn" [class.btn-primary]="selectedFilter === 'all'"
           [class.btn-outline-primary]="selectedFilter !== 'all'" (click)="filterPizzas('all')">
@@ -37,7 +33,6 @@
       </div>
     </div>
 
-    <!-- Pizza Grid -->
     <div class="row">
       <div class="col-md-6 mb-3" *ngFor="let pizza of filteredPizzas">
         <div class="pizza-card border rounded p-3 d-flex shadow-sm">
@@ -83,7 +78,6 @@
       </div>
     </div>
 
-    <!-- Empty State -->
     <div *ngIf="filteredPizzas.length === 0" class="text-center my-5">
       <p class="text-muted">No pizzas found for this filter.</p>
     </div>
